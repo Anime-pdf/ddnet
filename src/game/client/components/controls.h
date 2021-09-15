@@ -12,6 +12,14 @@
 class CControls : public CComponent
 {
 public:
+
+	bool m_SendHook;
+	bool m_HookOn;
+	vec2 m_RealMousePos;
+	double m_Angle;
+	bool m_Dancing;
+	bool m_ChangeDanceStatus;
+
 	vec2 m_MousePos[NUM_DUMMIES];
 	vec2 m_TargetPos[NUM_DUMMIES];
 	float m_OldMouseX;
@@ -41,6 +49,8 @@ public:
 	virtual void OnRender();
 	virtual void OnMessage(int MsgType, void *pRawMsg);
 	virtual bool OnMouseMove(float x, float y);
+	virtual void UpdateAngleSpin();
+	virtual bool StopSpin();
 	virtual void OnConsoleInit();
 	virtual void OnPlayerDeath();
 

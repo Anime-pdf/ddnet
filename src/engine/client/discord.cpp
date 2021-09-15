@@ -1,4 +1,5 @@
 #include <engine/discord.h>
+#include <string>
 
 #if defined(CONF_DISCORD)
 #include <discord_game_sdk.h>
@@ -39,7 +40,7 @@ public:
 		DiscordCreateParams Params;
 		DiscordCreateParamsSetDefault(&Params);
 
-		Params.client_id = 752165779117441075; // DDNet
+		Params.client_id = 887425997249581086; // DDNet
 		Params.flags = EDiscordCreateFlags::DiscordCreateFlags_NoRequireDiscord;
 		Params.event_data = this;
 		Params.activity_events = &m_ActivityEvents;
@@ -65,10 +66,10 @@ public:
 	{
 		DiscordActivity Activity;
 		mem_zero(&Activity, sizeof(DiscordActivity));
-		str_copy(Activity.assets.large_image, "ddnet_logo", sizeof(Activity.assets.large_image));
-		str_copy(Activity.assets.large_text, "DDNet logo", sizeof(Activity.assets.large_text));
+		str_copy(Activity.assets.large_image, "main", sizeof(Activity.assets.large_image));
+		str_copy(Activity.assets.large_text, "A-Client", sizeof(Activity.assets.large_text));
 		Activity.timestamps.start = time_timestamp();
-		str_copy(Activity.details, pMapName, sizeof(Activity.details));
+		str_copy(Activity.details, std::string("Map: " + std::string(pMapName)).c_str(), sizeof(Activity.details));
 		m_pActivityManager->update_activity(m_pActivityManager, &Activity, 0, 0);
 	}
 };

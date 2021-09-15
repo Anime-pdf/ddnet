@@ -3,6 +3,7 @@
 #include <engine/shared/config.h>
 #include <game/mapitems.h>
 #include <new>
+#include <thread>
 
 #include "character.h"
 #include "laser.h"

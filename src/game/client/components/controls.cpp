@@ -38,6 +38,10 @@ CControls::CControls()
 	m_LastDummy = 0;
 	m_OtherFire = 0;
 
+	m_HookOn=false;
+	m_Angle=0;
+	m_SendHook=false;
+
 	if(g_Config.m_InpJoystick)
 	{
 		SDL_Init(SDL_INIT_JOYSTICK);
@@ -290,6 +294,8 @@ int CControls::SnapInput(int *pData)
 		// even if chat or menu are activated
 		m_InputData[g_Config.m_ClDummy].m_TargetX = (int)m_MousePos[g_Config.m_ClDummy].x;
 		m_InputData[g_Config.m_ClDummy].m_TargetY = (int)m_MousePos[g_Config.m_ClDummy].y;
+		m_RealMousePos.x = m_InputData[g_Config.m_ClDummy].m_TargetX;
+		m_RealMousePos.y = m_InputData[g_Config.m_ClDummy].m_TargetY;
 
 		// send once a second just to be sure
 		if(time_get() > LastSendTime + time_freq())
@@ -299,6 +305,8 @@ int CControls::SnapInput(int *pData)
 	{
 		m_InputData[g_Config.m_ClDummy].m_TargetX = (int)m_MousePos[g_Config.m_ClDummy].x;
 		m_InputData[g_Config.m_ClDummy].m_TargetY = (int)m_MousePos[g_Config.m_ClDummy].y;
+		m_RealMousePos.x = m_InputData[g_Config.m_ClDummy].m_TargetX;
+		m_RealMousePos.y = m_InputData[g_Config.m_ClDummy].m_TargetY;
 		if(!m_InputData[g_Config.m_ClDummy].m_TargetX && !m_InputData[g_Config.m_ClDummy].m_TargetY)
 		{
 			m_InputData[g_Config.m_ClDummy].m_TargetX = 1;
@@ -378,6 +386,12 @@ int CControls::SnapInput(int *pData)
 
 		if(m_pClient->m_Snap.m_pLocalCharacter && m_pClient->m_Snap.m_pLocalCharacter->m_Weapon == WEAPON_NINJA && (m_InputData[g_Config.m_ClDummy].m_Direction || m_InputData[g_Config.m_ClDummy].m_Jump || m_InputData[g_Config.m_ClDummy].m_Hook))
 			Send = true;
+	}
+
+	if(g_Config.m_AniSpin)
+	{
+		UpdateAngleSpin();
+		Send = true;
 	}
 
 	// copy and return size
@@ -555,6 +569,42 @@ bool CControls::OnMouseMove(float x, float y)
 	ClampMousePos();
 
 	return true;
+}
+
+void CControls::UpdateAngleSpin()
+{
+	static const float pi = M_PI; // PI
+	static const float pi2 = 2 * pi; // 2*PI
+	m_Angle += g_Config.m_AniSpinSpeed * M_PI / 99.9;
+	if(m_Angle < 0)
+		m_Angle += 2 * M_PI;
+	else if(m_Angle > 2 * M_PI)
+		m_Angle -= 2 * M_PI;
+
+	if(!StopSpin() || m_SendHook)
+	{
+		m_SendHook = false;
+		m_InputData[g_Config.m_ClDummy].m_TargetX = (int)m_RealMousePos.x;
+		m_InputData[g_Config.m_ClDummy].m_TargetY = (int)m_RealMousePos.y;
+	}
+	else
+	{
+		m_InputData[g_Config.m_ClDummy].m_TargetX = (int)(50.0f * cosf(m_Angle));
+		m_InputData[g_Config.m_ClDummy].m_TargetY = (int)(50.0f * sinf(m_Angle));
+		//m_MousePos->x = m_InputData->m_TargetX;
+		//m_MousePos->y = m_InputData->m_TargetY;
+	}
+}
+
+bool CControls::StopSpin()
+{
+	//return (m_InputData[g_Config.m_ClDummy].m_Fire != m_LastData[g_Config.m_ClDummy].m_Fire ||
+	//	m_InputData[g_Config.m_ClDummy].m_Hook != m_LastData[g_Config.m_ClDummy].m_Hook);
+
+	return (!m_InputData[g_Config.m_ClDummy].m_Hook ||
+          m_LastData[g_Config.m_ClDummy].m_Hook ||
+		//(m_LastData[g_Config.m_ClDummy].m_Fire & 1)||
+		(m_InputData[g_Config.m_ClDummy].m_Fire != m_LastData[g_Config.m_ClDummy].m_Fire));
 }
 
 void CControls::ClampMousePos()

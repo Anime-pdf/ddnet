@@ -183,6 +183,13 @@ MACRO_CONFIG_INT(DbgStressNetwork, dbg_stress_network, 0, 0, 0, CFGFLAG_CLIENT |
 MACRO_CONFIG_STR(DbgStressServer, dbg_stress_server, 32, "localhost", CFGFLAG_CLIENT, "Server to stress")
 #endif
 
+// AniHax
+
+MACRO_CONFIG_INT(AniSpin, an_spin, 0, 0, 1,
+	CFGFLAG_CLIENT|CFGFLAG_SAVE, "Enable/disable the automatic spin of the player")
+MACRO_CONFIG_INT(AniSpinSpeed, an_spinspeed, 1, -100, 100,
+	CFGFLAG_CLIENT|CFGFLAG_SAVE, "Define the speed for auto spin (positive or negative number)")
+
 // DDRace
 MACRO_CONFIG_STR(SvWelcome, sv_welcome, 64, "", CFGFLAG_SERVER, "Message that will be displayed to players who join the server")
 MACRO_CONFIG_INT(SvReservedSlots, sv_reserved_slots, 0, 0, MAX_CLIENTS, CFGFLAG_SERVER, "The number of slots that are reserved for special players")
