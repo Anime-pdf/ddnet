@@ -317,6 +317,7 @@ void CConfigManager::Init()
 	}
 
 #include "config_variables.h"
+#include "config_variables_custom.h"
 
 #undef MACRO_CONFIG_INT
 #undef MACRO_CONFIG_COL

@@ -186,6 +186,7 @@ void CTeeHistorian::WriteHeader(const CGameInfo *pGameInfo)
 	}
 
 #include <engine/shared/config_variables.h>
+#include <engine/shared/config_variables_custom.h>
 
 #undef MACRO_CONFIG_INT
 #undef MACRO_CONFIG_COL

@@ -40,6 +40,7 @@ protected:
 #define MACRO_CONFIG_STR(Name, ScriptName, Len, Def, Save, Desc) \
 	str_copy(m_Config.m_##Name, (Def), sizeof(m_Config.m_##Name));
 #include <engine/shared/config_variables.h>
+#include <engine/shared/config_variables_custom.h>
 #undef MACRO_CONFIG_STR
 #undef MACRO_CONFIG_COL
 #undef MACRO_CONFIG_INT
