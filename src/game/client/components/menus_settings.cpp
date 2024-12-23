@@ -2853,6 +2853,12 @@ void CMenus::RenderSettingsAppearance(CUIRect MainView)
 			if(DoButton_CheckBox(&s_ShowHookCollOwn, Localize("Always show own player's hook collision line"), g_Config.m_ClShowHookCollOwn == 2, &Button))
 				g_Config.m_ClShowHookCollOwn = g_Config.m_ClShowHookCollOwn != 2 ? 2 : 1;
 		}
+		LeftView.HSplitTop(LineSize, &Button, &LeftView);
+		if(g_Config.m_ClShowHookCollOwn)
+		{
+			if(DoButton_IconCheckBox(&g_Config.m_ClShowHookCollOwnOverride, FONT_ICON_GEAR, ColorRGBA(1.0f, 0.85f, 0.3f, 1.f), Localize("Override server's hook collision policy"), g_Config.m_ClShowHookCollOwnOverride, &Button))
+				g_Config.m_ClShowHookCollOwnOverride = g_Config.m_ClShowHookCollOwnOverride ? 0 : 1;
+		}
 
 		LeftView.HSplitTop(LineSize, &Button, &LeftView);
 		if(DoButton_CheckBox(&g_Config.m_ClShowHookCollOther, Localize("Show other players' hook collision lines"), g_Config.m_ClShowHookCollOther, &Button))
