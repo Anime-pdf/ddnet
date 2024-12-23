@@ -31,7 +31,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_BANNER].m_Id);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1, 1, 1, 1);
-	IGraphics::CQuadItem QuadItem(MainView.w / 2 - 170, 60, 360, 103);
+	IGraphics::CQuadItem QuadItem((MainView.w / 2) - 170.f + (MainView.w / 5), (MainView.h / 2) - 20, 360, 103);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
 
@@ -42,8 +42,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	int NewPage = -1;
 
 	CUIRect ExtMenu;
-	MainView.VSplitLeft(30.0f, 0, &ExtMenu);
-	ExtMenu.VSplitLeft(100.0f, &ExtMenu, 0);
+	MainView.VSplitRight(100.0f, 0, &ExtMenu);
 
 	ExtMenu.HSplitBottom(20.0f, &ExtMenu, &Button);
 	static CButtonContainer s_DiscordButton;
@@ -122,6 +121,8 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 		}
 	}
 
+	Menu.x -= MainView.w / 5;
+
 	Menu.HSplitBottom(100.0f, &Menu, 0);
 	Menu.HSplitBottom(40.0f, &Menu, &Button);
 	static CButtonContainer s_SettingsButton;
@@ -180,8 +181,8 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	CurVersion.VSplitRight(40.0f, &CurVersion, nullptr);
 	CurVersion.HSplitTop(20.0f, &ConsoleButton, &CurVersion);
 	CurVersion.HSplitTop(5.0f, nullptr, &CurVersion);
-	ConsoleButton.VSplitRight(40.0f, nullptr, &ConsoleButton);
-	Ui()->DoLabel(&CurVersion, GAME_RELEASE_VERSION, 14.0f, TEXTALIGN_MR);
+	ConsoleButton.VSplitLeft(40.0f, &ConsoleButton, nullptr);
+	Ui()->DoLabel(&CurVersion, GAME_RELEASE_VERSION, 14.0f, TEXTALIGN_ML);
 
 	static CButtonContainer s_ConsoleButton;
 	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
