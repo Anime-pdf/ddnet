@@ -538,6 +538,12 @@ void CPlayers::RenderPlayer(
 			Alpha);
 	}
 
+	// hammer hitbox
+	if(Player.m_Weapon == WEAPON_HAMMER && ((Local && g_Config.m_ClShowHammerHitboxOwn) || (!Local && g_Config.m_ClShowHammerHitboxOther)))
+	{
+		RenderTools()->RenderHammerHitbox(Position, Direction);
+	}
+
 	// draw gun
 	if(Player.m_Weapon >= 0)
 	{
@@ -736,7 +742,11 @@ void CPlayers::RenderPlayer(
 		RenderTools()->RenderTee(&State, &Shadow, Player.m_Emote, Direction, ShadowPosition, 0.5f); // render ghost
 	}
 
-	RenderTools()->RenderTee(&State, &RenderInfo, Player.m_Emote, Direction, Position, Alpha);
+	// tee hitbox
+	if((Local && g_Config.m_ClShowTeeHitboxOwn) || (!Local && g_Config.m_ClShowTeeHitboxOther))
+		RenderTools()->RenderTeeHitbox(Position);
+	else
+		RenderTools()->RenderTee(&State, &RenderInfo, Player.m_Emote, Direction, Position, Alpha);
 
 	float TeeAnimScale, TeeBaseSize;
 	CRenderTools::GetRenderTeeAnimScaleAndBaseSize(&RenderInfo, TeeAnimScale, TeeBaseSize);
