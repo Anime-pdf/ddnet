@@ -459,6 +459,45 @@ int CMenus::DoButton_CheckBox(const void *pId, const char *pText, int Checked, c
 	return DoButton_CheckBox_Common(pId, pText, Checked ? "X" : "", pRect);
 }
 
+int CMenus::DoButton_IconCheckBox(const void *pId, const char *pIcon, const ColorRGBA &IconColor, const char *pText, int Checked, const CUIRect *pRect)
+{
+	CUIRect Box, Icon, Label;
+	pRect->VSplitLeft(pRect->h, &Box, &Icon);
+	Icon.VSplitLeft(pRect->h, &Icon, &Label);
+
+	const char *pBoxText = Checked ? "X" : "";
+
+	Box.Margin(2.0f, &Box);
+	Box.Draw(ColorRGBA(1, 1, 1, 0.25f * Ui()->ButtonColorMul(pId)), IGraphics::CORNER_ALL, 3.0f);
+
+	const bool Checkable = *pBoxText == 'X';
+	if(Checkable)
+	{
+		TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGMENT);
+		TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		Ui()->DoLabel(&Box, FONT_ICON_XMARK, Box.h * CUi::ms_FontmodHeight, TEXTALIGN_MC);
+		TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+	}
+	else
+		Ui()->DoLabel(&Box, pBoxText, Box.h * CUi::ms_FontmodHeight, TEXTALIGN_MC);
+
+	TextRender()->SetRenderFlags(0);
+
+	{ // icon
+		TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGMENT);
+		TextRender()->TextColor(IconColor);
+		TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
+		Ui()->DoLabel(&Icon, pIcon, Icon.h * CUi::ms_FontmodHeight, TEXTALIGN_MC);
+		TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
+		TextRender()->TextColor(TextRender()->DefaultTextColor());
+		TextRender()->SetRenderFlags(0);
+	}
+
+	Ui()->DoLabel(&Label, pText, Box.h * CUi::ms_FontmodHeight, TEXTALIGN_ML);
+
+	return Ui()->DoButtonLogic(pId, 0, pRect);
+}
+
 int CMenus::DoButton_CheckBox_Number(const void *pId, const char *pText, int Checked, const CUIRect *pRect)
 {
 	char aBuf[16];

@@ -79,6 +79,7 @@ class CMenus : public CComponent
 	int DoButton_MenuTab(CButtonContainer *pButtonContainer, const char *pText, int Checked, const CUIRect *pRect, int Corners, SUIAnimator *pAnimator = nullptr, const ColorRGBA *pDefaultColor = nullptr, const ColorRGBA *pActiveColor = nullptr, const ColorRGBA *pHoverColor = nullptr, float EdgeRounding = 10.0f, const SCommunityIcon *pCommunityIcon = nullptr);
 
 	int DoButton_CheckBox_Common(const void *pId, const char *pText, const char *pBoxText, const CUIRect *pRect);
+	int DoButton_IconCheckBox(const void *pId, const char *pIcon, const ColorRGBA &IconColor, const char *pText, int Checked, const CUIRect *pRect);
 	int DoButton_CheckBox(const void *pId, const char *pText, int Checked, const CUIRect *pRect);
 	int DoButton_CheckBoxAutoVMarginAndSet(const void *pId, const char *pText, int *pValue, CUIRect *pRect, float VMargin);
 	int DoButton_CheckBox_Number(const void *pId, const char *pText, int Checked, const CUIRect *pRect);
