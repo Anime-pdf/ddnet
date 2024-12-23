@@ -346,7 +346,7 @@ int InitSearchList(std::vector<const TName *> &vpSearchList, std::vector<TName> 
 	return vAssetList.size();
 }
 
-void CMenus::RenderSettingsCustom(CUIRect MainView)
+void CMenus::RenderSettingsAssets(CUIRect MainView)
 {
 	CUIRect TabBar, CustomList, QuickSearch, DirectoryButton, ReloadButton;
 
