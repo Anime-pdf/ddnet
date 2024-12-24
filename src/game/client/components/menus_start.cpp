@@ -31,7 +31,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	Graphics()->TextureSet(g_pData->m_aImages[IMAGE_BANNER].m_Id);
 	Graphics()->QuadsBegin();
 	Graphics()->SetColor(1, 1, 1, 1);
-	IGraphics::CQuadItem QuadItem((MainView.w / 2) - 170.f + (MainView.w / 5), (MainView.h / 2) - 20, 360, 103);
+	IGraphics::CQuadItem QuadItem((MainView.w / 2) - 180.f + (MainView.w / 5), (MainView.h / 2) - 50, 360, 103);
 	Graphics()->QuadsDrawTL(&QuadItem, 1);
 	Graphics()->QuadsEnd();
 
@@ -122,6 +122,7 @@ void CMenus::RenderStartMenu(CUIRect MainView)
 	}
 
 	Menu.x -= MainView.w / 5;
+	Menu.y -= 17;
 
 	Menu.HSplitBottom(100.0f, &Menu, 0);
 	Menu.HSplitBottom(40.0f, &Menu, &Button);
