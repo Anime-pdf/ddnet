@@ -20,20 +20,50 @@
 #include <game/generated/client_data7.h>
 #include <game/localization.h>
 
+struct SPopupProperties
+{
+	static constexpr float ms_Width = 220.0f;
+
+	static constexpr float ms_HeadlineFontSize = 24.0f;
+	static constexpr float ms_FontSize = 24.0f;
+	static constexpr float ms_IconFontSize = 33.0f;
+	static constexpr float ms_Padding = 20.0f;
+	static constexpr float ms_Rounding = 10.0f;
+
+	static constexpr float ms_ItemSpacing = 5.0f;
+	static constexpr float ms_GroupSpacing = 15.0f;
+
+	static constexpr float ms_QuickActionsHeight = 50.0f;
+	static constexpr float ms_ButtonHeight = 35.0f;
+
+	static ColorRGBA WindowColor() { return ColorRGBA(0.451f, 0.451f, 0.451f, 0.9f); };
+	static ColorRGBA GeneralButtonColor() { return ColorRGBA(0.541f, 0.561f, 0.48f, 0.8f); };
+	static ColorRGBA GeneralActiveButtonColor() { return ColorRGBA(0.53f, 0.78f, 0.53f, 0.8f); };
+
+	static ColorRGBA ActionGeneralButtonColor() { return ColorRGBA(0.541f, 0.561f, 0.48f, 0.8f); };
+	static ColorRGBA ActionActiveButtonColor() { return ColorRGBA(0.53f, 0.78f, 0.53f, 0.8f); };
+	static ColorRGBA ActionAltActiveButtonColor() { return ColorRGBA(1.0f, 0.42f, 0.42f, 0.8f); };
+
+	static ColorRGBA TeamsGeneralButtonColor() { return ColorRGBA(0.32f, 0.32f, 0.72f, 0.8f); };
+	static ColorRGBA TeamsActiveButtonColor() { return ColorRGBA(0.31f, 0.52f, 0.78f, 0.8f); };
+};
+
 void CScoreboard::DoIconLabeledButton(CUIRect *pRect, const char *pTitle, const char *pIcon, float TextSize, float Height, ColorRGBA IconColor) const
 {
 	CUIRect Label;
 	pRect->VSplitLeft(Height, &Label, pRect);
-	// icon
+	DoIconButton(&Label, pIcon, TextSize, IconColor);
+	Ui()->DoLabel(pRect, pTitle, TextSize, TEXTALIGN_MC);
+}
+void CScoreboard::DoIconButton(CUIRect *pRect, const char *pIcon, float TextSize, ColorRGBA IconColor) const
+{
 	TextRender()->SetFontPreset(EFontPreset::ICON_FONT);
 	TextRender()->SetRenderFlags(ETextRenderFlags::TEXT_RENDER_FLAG_ONLY_ADVANCE_WIDTH | ETextRenderFlags::TEXT_RENDER_FLAG_NO_X_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_Y_BEARING | ETextRenderFlags::TEXT_RENDER_FLAG_NO_PIXEL_ALIGMENT | ETextRenderFlags::TEXT_RENDER_FLAG_NO_OVERSIZE);
 	TextRender()->TextColor(IconColor);
-	Ui()->DoLabel(&Label, pIcon, TextSize, TEXTALIGN_MC);
+	Ui()->DoLabel(pRect, pIcon, TextSize, TEXTALIGN_MC);
 	TextRender()->TextColor(TextRender()->DefaultTextColor());
 	TextRender()->SetRenderFlags(0);
 	TextRender()->SetFontPreset(EFontPreset::DEFAULT_FONT);
-	// label
-	Ui()->DoLabel(pRect, pTitle, TextSize, TEXTALIGN_MC);
 }
 
 CScoreboard::CScoreboard()
@@ -107,7 +137,12 @@ bool CScoreboard::OnInput(const IInput::CEvent &Event)
 	if(Event.m_Flags & IInput::FLAG_PRESS && Event.m_Key == KEY_MOUSE_3)
 		m_Mouse.m_Unlocked = !m_Mouse.m_Unlocked;
 
-	m_Mouse.m_Clicked = m_Mouse.m_Unlocked && (Event.m_Flags & IInput::FLAG_PRESS && (Event.m_Key == KEY_MOUSE_1 || Event.m_Key == KEY_MOUSE_2));
+	m_Mouse.m_LastMouseInput = m_Mouse.m_MouseInput;
+	m_Mouse.m_MouseInput = m_Mouse.m_Unlocked && (Event.m_Flags & IInput::FLAG_PRESS && (Event.m_Key == KEY_MOUSE_1 || Event.m_Key == KEY_MOUSE_2));
+	m_Mouse.m_Clicked = !m_Mouse.m_LastMouseInput && m_Mouse.m_MouseInput;
+
+	if(m_Mouse.m_MouseInput || m_Mouse.m_Clicked)
+		dbg_msg("on/input", "click: %d, mouse: %d", m_Mouse.m_Clicked, m_Mouse.m_MouseInput);
 
 	return m_Mouse.m_Clicked;
 }
@@ -122,13 +157,11 @@ void CScoreboard::SPlayerPopup::toggle(const bool Show, const vec2 Pos, const in
 	}
 }
 
-bool CScoreboard::SPlayerPopup::shouldHide(const SMouseState &Mouse, const bool PlayerHovered, const CGameClient *GameClient) const
+bool CScoreboard::SPlayerPopup::shouldHide(const SMouseState &Mouse, const bool PlayerHovered) const
 {
 	return (!PlayerHovered && Mouse.m_Clicked) ||
-	       !Mouse.m_Unlocked ||
-	       !GameClient->m_Snap.m_apInfoByDDTeamScore[m_PlayerId];
+	       !Mouse.m_Unlocked;
 }
-
 
 void CScoreboard::RenderTitle(CUIRect TitleBar, int Team, const char *pTitle)
 {
@@ -310,7 +343,7 @@ void CScoreboard::RenderSpectators(CUIRect Spectators)
 	}
 }
 
-void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart, int CountEnd, CScoreboardRenderState &State)
+bool CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart, int CountEnd, CScoreboardRenderState &State, bool playerHovered)
 {
 	dbg_assert(Team == TEAM_RED || Team == TEAM_BLUE, "Team invalid");
 
@@ -418,8 +451,6 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 
 	char aBuf[64];
 	int MaxTeamSize = m_pClient->Config()->m_SvMaxTeamSize;
-
-	bool playerHovered = m_Popup.m_Visible && DoButtonLogic(&m_Popup.m_Rect);
 
 	for(int RenderDead = 0; RenderDead < 2; RenderDead++)
 	{
@@ -531,7 +562,7 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 
 			if(!playerHovered)
 			{
-				if(Hovered(&Row) && !m_Popup.m_Visible)
+				if(Hovered(&Row) && !Hovered(&m_Popup.m_Rect))
 					Row.Draw(ColorRGBA(.7f, .7f, .7f, .7f), IGraphics::CORNER_ALL, RoundRadius);
 				if(DoButtonLogic(&Row))
 				{
@@ -675,10 +706,7 @@ void CScoreboard::RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart,
 		}
 	}
 
-	if(m_Popup.shouldHide(m_Mouse, playerHovered, GameClient()))
-		m_Popup.toggle(false);
-	if(m_Popup.m_Visible)
-		RenderPlayerPopUp();
+	return playerHovered;
 }
 
 void CScoreboard::RenderRecordingNotification(float x)
@@ -720,21 +748,60 @@ void CScoreboard::RenderRecordingNotification(float x)
 	Rect.VSplitLeft(10.0f, nullptr, &Rect);
 	Ui()->DoLabel(&Rect, aBuf, FontSize, TEXTALIGN_ML);
 }
+float CScoreboard::CalculatePopupHeight()
+{
+	int GeneralButtons = 3;
+	int TeamButtons = 0;
+	{
+		bool LocalIsTarget = GameClient()->m_aLocalIds[g_Config.m_ClDummy] == m_Popup.m_PlayerId;
+		int LocalTeam = GameClient()->m_Teams.Team(GameClient()->m_aLocalIds[g_Config.m_ClDummy]);
+		int TargetTeam = GameClient()->m_Teams.Team(m_Popup.m_PlayerId);
 
-static std::string encodeUTF8(const std::string& Input) {
+		bool LocalInTeam = LocalTeam != TEAM_FLOCK && LocalTeam != TEAM_SUPER;
+		bool TargetInTeam = TargetTeam != TEAM_FLOCK && TargetTeam != TEAM_SUPER;
+
+		if(LocalInTeam && LocalTeam == TargetTeam)
+			TeamButtons++;
+		if(TargetInTeam && LocalTeam != TargetTeam)
+			TeamButtons++;
+		if(LocalInTeam && TargetTeam != LocalTeam)
+			TeamButtons++;
+		if(!LocalIsTarget && LocalInTeam && TargetTeam == LocalTeam)
+			TeamButtons++;
+		if(LocalInTeam && LocalTeam == TargetTeam)
+			TeamButtons++;
+	}
+
+	const float Height = (SPopupProperties::ms_Padding * 2) +
+			     (SPopupProperties::ms_HeadlineFontSize) +
+			     (SPopupProperties::ms_QuickActionsHeight) +
+			     (SPopupProperties::ms_ItemSpacing * (GeneralButtons + TeamButtons + 1)) +
+			     (SPopupProperties::ms_ButtonHeight * (GeneralButtons + TeamButtons)) +
+			     (TeamButtons > 0 ? SPopupProperties::ms_GroupSpacing : 0);
+
+	return Height;
+}
+
+static std::string encodeUTF8(const std::string &Input)
+{
 	std::ostringstream Encoded;
-	const char* ptr = Input.c_str();
+	const char *ptr = Input.c_str();
 
-	while (*ptr != '\0') {
+	while(*ptr != '\0')
+	{
 		int CodePoint = str_utf8_decode(&ptr);
-		if (CodePoint < 0) {
+		if(CodePoint < 0)
+		{
 			Encoded << "-ERROR-";
 			break;
 		}
 
-		if (CodePoint <= 127 && std::isalnum(static_cast<unsigned char>(CodePoint))) {
+		if(CodePoint <= 127 && std::isalnum(static_cast<unsigned char>(CodePoint)))
+		{
 			Encoded << static_cast<char>(CodePoint);
-		} else {
+		}
+		else
+		{
 			Encoded << '-' << CodePoint << '-';
 		}
 	}
@@ -742,123 +809,214 @@ static std::string encodeUTF8(const std::string& Input) {
 	return Encoded.str();
 }
 
-static ColorRGBA ButtonColor(const vec2 MousePos, const CUIRect *pRect)
-{
-	return pRect->Inside(MousePos) ? ColorRGBA(.7f, .7f, .7f, .7f) : ColorRGBA(.5f, .5f, .5f, .7f);;
-}
-
 void CScoreboard::RenderPlayerPopUp()
 {
-	const char* pPlayerName = GameClient()->m_aClients[m_Popup.m_PlayerId].m_aName;
-	const char* pPlayerClan = GameClient()->m_aClients[m_Popup.m_PlayerId].m_aClan;
-	int TeamId = GameClient()->m_Teams.Team(m_Popup.m_PlayerId);
+	const char *pPlayerName = GameClient()->m_aClients[m_Popup.m_PlayerId].m_aName;
 
-	int NumButtons = 4 + (TeamId != TEAM_FLOCK && TeamId != TEAM_SUPER ? 1 : 0); ;
-	constexpr float FontSize = 30.0f;
-	constexpr float ButtonHeight = 40.0f;
-	constexpr float ButtonSpacing = 10.0f;
-	constexpr float ButtonVMargin = 20.0f;
-	constexpr float ButtonRounding = 10.0f;
+	CUIRect Base, Label;
 
-	CUIRect Base, Label, Button;
 	Base.x = m_Popup.m_Position.x;
 	Base.y = m_Popup.m_Position.y;
-	Base.h = 20.0f + (NumButtons*ButtonHeight) + (NumButtons*ButtonSpacing) + FontSize;
-	Base.w = 340.0f;
+	Base.h = CalculatePopupHeight();
+	Base.w = SPopupProperties::ms_Width;
+
+	vec2 ScreenTL, ScreenBR;
+	Graphics()->GetScreen(&ScreenTL.x, &ScreenTL.y, &ScreenBR.x, &ScreenBR.y);
+
+	if(Base.y + Base.h > ScreenBR.y)
+	{
+		Base.y -= Base.y + Base.h - ScreenBR.y;
+	}
+	if(Base.x + Base.w > ScreenBR.x)
+	{
+		Base.x -= Base.x + Base.w - ScreenBR.x;
+	}
 
 	m_Popup.m_Rect = Base;
 
-	Base.Draw(ColorRGBA(.3f, .3f, .3f, .7f), IGraphics::CORNER_ALL, ButtonRounding);
-	Base.Margin(10.f, &Base);
+	Base.Draw(SPopupProperties::WindowColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	Base.Margin(SPopupProperties::ms_Padding, &Base);
 
-	Base.HSplitTop(FontSize, &Label, &Base);
-	Ui()->DoLabel(&Label, pPlayerName, FontSize, TEXTALIGN_ML);
+	Base.HSplitTop(SPopupProperties::ms_HeadlineFontSize, &Label, &Base);
+	Ui()->DoLabel(&Label, pPlayerName, SPopupProperties::ms_HeadlineFontSize, TEXTALIGN_ML);
 
-	Base.HSplitTop(ButtonSpacing, nullptr, &Base);
-	Base.HSplitTop(ButtonHeight, &Button, &Base);
-	Button.VMargin(ButtonVMargin, &Button);
-	Button.Draw(ButtonColor(m_Mouse.m_Position, &Button), IGraphics::CORNER_ALL, ButtonRounding);
-	DoIconLabeledButton(&Button, Localize("Profile"), FontIcons::FONT_ICON_FILE, FontSize, ButtonHeight, ColorRGBA(0, 0.886f, 1.0f, 1.0f));
-	if(DoButtonLogic(&Button))
-	{
-		if(Client()->GlobalTime() - m_Popup.m_LastButtonPressTime > .5f)
-		{
-			char aBuf[512];
-			str_format(aBuf, sizeof(aBuf), "https://ddnet.org/players/%s", encodeUTF8(pPlayerName).c_str());
-			Client()->ViewLink(aBuf);
-			m_Popup.m_LastButtonPressTime = Client()->GlobalTime();
-		}
-	}
+	RenderQuickActions(&Base);
+	RenderGeneralActions(&Base);
+	RenderTeamActions(&Base);
+}
 
-	Base.HSplitTop(ButtonSpacing, nullptr, &Base);
-	Base.HSplitTop(ButtonHeight, &Button, &Base);
-	Button.VMargin(ButtonVMargin, &Button);
-	Button.Draw(ButtonColor(m_Mouse.m_Position, &Button), IGraphics::CORNER_ALL, ButtonRounding);
+void CScoreboard::RenderQuickActions(CUIRect *pBase)
+{
+	CUIRect Container, Action;
+
+	const char *pPlayerName = GameClient()->m_aClients[m_Popup.m_PlayerId].m_aName;
+	const char *pPlayerClan = GameClient()->m_aClients[m_Popup.m_PlayerId].m_aClan;
+
+	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+	pBase->HSplitTop(SPopupProperties::ms_QuickActionsHeight, &Container, pBase);
+
+	float ActionSpacing = (pBase->w - (3 * SPopupProperties::ms_QuickActionsHeight)) / 2;
+
+	Container.VSplitLeft(SPopupProperties::ms_QuickActionsHeight, &Action, &Container);
+
+	// Friend
 	const bool IsFriend = Client()->Friends()->IsFriend(pPlayerName, pPlayerClan, true);
-	DoIconLabeledButton(&Button, IsFriend ? Localize("Remove Friend") : Localize("Add Friend"), FontIcons::FONT_ICON_HEART, FontSize, ButtonHeight, ColorRGBA(1.f, 0, 0, 1.0f));
-	if(DoButtonLogic(&Button))
+	if(Hovered(&Action))
 	{
-		if(Client()->GlobalTime() - m_Popup.m_LastButtonPressTime > .5f)
-		{
-			if(IsFriend)
-				Client()->Friends()->RemoveFriend(pPlayerName, pPlayerClan);
-			else
-				Client()->Friends()->AddFriend(pPlayerName, pPlayerClan);
-			m_Popup.m_LastButtonPressTime = Client()->GlobalTime();
-		}
+		Action.Draw(IsFriend ? SPopupProperties::ActionAltActiveButtonColor() : SPopupProperties::ActionActiveButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		DoIconButton(&Action, IsFriend ? FontIcons::FONT_ICON_HEART_CRACK : FontIcons::FONT_ICON_HEART, SPopupProperties::ms_IconFontSize, TextRender()->DefaultTextColor());
+	}
+	else
+	{
+		Action.Draw(IsFriend ? SPopupProperties::ActionActiveButtonColor() : SPopupProperties::ActionGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		DoIconButton(&Action, FontIcons::FONT_ICON_HEART, SPopupProperties::ms_IconFontSize, TextRender()->DefaultTextColor());
+	}
+	if(DoButtonLogic(&Action))
+	{
+		if(IsFriend)
+			Client()->Friends()->RemoveFriend(pPlayerName, pPlayerClan);
+		else
+			Client()->Friends()->AddFriend(pPlayerName, pPlayerClan);
 	}
 
-	Base.HSplitTop(ButtonSpacing, nullptr, &Base);
-	Base.HSplitTop(ButtonHeight, &Button, &Base);
-	Button.VMargin(ButtonVMargin, &Button);
-	Button.Draw(ButtonColor(m_Mouse.m_Position, &Button), IGraphics::CORNER_ALL, ButtonRounding);
+	Container.VSplitLeft(ActionSpacing, nullptr, &Container);
+	Container.VSplitLeft(SPopupProperties::ms_QuickActionsHeight, &Action, &Container);
+
+	// Foe
 	const bool IsFoe = Client()->Foes()->IsFriend(pPlayerName, pPlayerClan, true);
-	DoIconLabeledButton(&Button, IsFoe ? Localize("Remove Foe") : Localize("Add Foe"), FontIcons::FONT_ICON_BAN, FontSize, ButtonHeight, ColorRGBA(0.941f, 0.784f, 0.012f, 1.0f));
-	if(DoButtonLogic(&Button))
+	Action.Draw(IsFoe ? SPopupProperties::ActionAltActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	if(Hovered(&Action))
+		Action.Draw(IsFoe ? SPopupProperties::ActionActiveButtonColor() : SPopupProperties::ActionAltActiveButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	DoIconButton(&Action, FontIcons::FONT_ICON_BAN, SPopupProperties::ms_IconFontSize, TextRender()->DefaultTextColor());
+	if(DoButtonLogic(&Action))
 	{
-		if(Client()->GlobalTime() - m_Popup.m_LastButtonPressTime > .5f)
-		{
-			if(IsFoe)
-				Client()->Foes()->RemoveFriend(pPlayerName, pPlayerClan);
-			else
-				Client()->Foes()->AddFriend(pPlayerName, pPlayerClan);
-			m_Popup.m_LastButtonPressTime = Client()->GlobalTime();
-		}
+		if(IsFoe)
+			Client()->Foes()->RemoveFriend(pPlayerName, pPlayerClan);
+		else
+			Client()->Foes()->AddFriend(pPlayerName, pPlayerClan);
 	}
 
-	Base.HSplitTop(ButtonSpacing, nullptr, &Base);
-	Base.HSplitTop(ButtonHeight, &Button, &Base);
-	Button.VMargin(ButtonVMargin, &Button);
-	Button.Draw(ButtonColor(m_Mouse.m_Position, &Button), IGraphics::CORNER_ALL, ButtonRounding);
-	DoIconLabeledButton(&Button, Localize("Spectate"), FontIcons::FONT_ICON_EYE, FontSize, ButtonHeight, ColorRGBA(0.451f, 0.949f, 0.404f, 1.0f));
+	Container.VSplitRight(SPopupProperties::ms_QuickActionsHeight, &Container, &Action);
+
+	// Spectate
+	Action.Draw(Hovered(&Action) ? SPopupProperties::ActionActiveButtonColor() : SPopupProperties::ActionGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	DoIconButton(&Action, FontIcons::FONT_ICON_EYE, SPopupProperties::ms_IconFontSize, TextRender()->DefaultTextColor());
+	if(DoButtonLogic(&Action))
+	{
+		if(!GameClient()->m_Snap.m_SpecInfo.m_Active)
+			Console()->ExecuteLine("say /pause");
+		GameClient()->m_Spectator.Spectate(m_Popup.m_PlayerId);
+	}
+}
+
+void CScoreboard::RenderGeneralActions(CUIRect *pBase)
+{
+	CUIRect Button;
+
+	const char *pPlayerName = GameClient()->m_aClients[m_Popup.m_PlayerId].m_aName;
+
+	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+	pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+	Button.Draw(Hovered(&Button) ? SPopupProperties::GeneralActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	Ui()->DoLabel(&Button, Localize("Profile"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
 	if(DoButtonLogic(&Button))
 	{
-		if(Client()->GlobalTime() - m_Popup.m_LastButtonPressTime > .5f)
-		{
-			if(!GameClient()->m_Snap.m_SpecInfo.m_Active)
-				Console()->ExecuteLine("say /pause");
-			GameClient()->m_Spectator.Spectate(m_Popup.m_PlayerId);
-			m_Popup.m_LastButtonPressTime = Client()->GlobalTime();
-		}
+		char aBuf[512];
+		str_format(aBuf, sizeof(aBuf), "https://ddnet.org/players/%s", encodeUTF8(pPlayerName).c_str());
+		Client()->ViewLink(aBuf);
 	}
 
-	if(TeamId != TEAM_FLOCK && TeamId != TEAM_SUPER)
+	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+	pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+	Button.Draw(Hovered(&Button) ? SPopupProperties::GeneralActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	Ui()->DoLabel(&Button, Localize("Copy Name"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+	if(DoButtonLogic(&Button))
 	{
-		Base.HSplitTop(ButtonSpacing, nullptr, &Base);
-		Base.HSplitTop(ButtonHeight, &Button, &Base);
-		Button.VMargin(ButtonVMargin, &Button);
-		Button.Draw(ButtonColor(m_Mouse.m_Position, &Button), IGraphics::CORNER_ALL, ButtonRounding);
-		const bool SameTeam = GameClient()->m_Teams.SameTeam(GameClient()->m_aLocalIds[g_Config.m_ClDummy], m_Popup.m_PlayerId);
-		DoIconLabeledButton(&Button, SameTeam ? Localize("Exit Team") : Localize("Join Team"), FontIcons::FONT_ICON_PLAY, FontSize, ButtonHeight, ColorRGBA(0.855f, 0.404f, 0.949f, 1.0f));
+		Input()->SetClipboardText(pPlayerName);
+	}
+
+	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+	pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+	Button.Draw(Hovered(&Button) ? SPopupProperties::GeneralActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	Ui()->DoLabel(&Button, Localize("Vote Kick"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+	if(DoButtonLogic(&Button))
+	{
+		GameClient()->m_Voting.CallvoteKick(m_Popup.m_PlayerId, "");
+	}
+}
+
+void CScoreboard::RenderTeamActions(CUIRect *pBase)
+{
+	CUIRect Button;
+
+	bool LocalIsTarget = GameClient()->m_aLocalIds[g_Config.m_ClDummy] == m_Popup.m_PlayerId;
+	int LocalTeam = GameClient()->m_Teams.Team(GameClient()->m_aLocalIds[g_Config.m_ClDummy]);
+	int TargetTeam = GameClient()->m_Teams.Team(m_Popup.m_PlayerId);
+
+	bool LocalInTeam = LocalTeam != TEAM_FLOCK && LocalTeam != TEAM_SUPER;
+	bool TargetInTeam = TargetTeam != TEAM_FLOCK && TargetTeam != TEAM_SUPER;
+
+	pBase->HSplitTop(SPopupProperties::ms_GroupSpacing, nullptr, pBase);
+
+	if(LocalInTeam && LocalTeam == TargetTeam)
+	{
+		pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+		pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+		Button.Draw(Hovered(&Button) ? SPopupProperties::TeamsActiveButtonColor() : SPopupProperties::TeamsGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		Ui()->DoLabel(&Button, Localize("Exit"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
 		if(DoButtonLogic(&Button))
 		{
-			if(Client()->GlobalTime() - m_Popup.m_LastButtonPressTime > .5f)
-			{
-				char aCmdBuf[128];
-				str_format(aCmdBuf, sizeof(aCmdBuf), "say /team %d", SameTeam ? 0 : TeamId);
-				Console()->ExecuteLine(aCmdBuf);
-				m_Popup.m_LastButtonPressTime = Client()->GlobalTime();
-			}
+			Console()->ExecuteLine("say /team 0");
+		}
+	}
+	if(TargetInTeam && LocalTeam != TargetTeam)
+	{
+		pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+		pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+		Button.Draw(Hovered(&Button) ? SPopupProperties::TeamsActiveButtonColor() : SPopupProperties::TeamsGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		Ui()->DoLabel(&Button, Localize("Join"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+		if(DoButtonLogic(&Button))
+		{
+			char aCmdBuf[128];
+			str_format(aCmdBuf, sizeof(aCmdBuf), "say /team %d", TargetTeam);
+			Console()->ExecuteLine(aCmdBuf);
+		}
+	}
+
+	if(LocalInTeam && TargetTeam != LocalTeam)
+	{
+		pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+		pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+		Button.Draw(Hovered(&Button) ? SPopupProperties::TeamsActiveButtonColor() : SPopupProperties::TeamsGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		Ui()->DoLabel(&Button, Localize("Invite"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+		if(DoButtonLogic(&Button))
+		{
+			char aCmdBuf[128];
+			str_format(aCmdBuf, sizeof(aCmdBuf), "say /invite %s", GameClient()->m_aClients[m_Popup.m_PlayerId].m_aName);
+			Console()->ExecuteLine(aCmdBuf);
+		}
+	}
+	if(!LocalIsTarget && LocalInTeam && TargetTeam == LocalTeam)
+	{
+		pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+		pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+		Button.Draw(Hovered(&Button) ? SPopupProperties::TeamsActiveButtonColor() : SPopupProperties::TeamsGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		Ui()->DoLabel(&Button, Localize("Kick"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+		if(DoButtonLogic(&Button))
+		{
+			GameClient()->m_Voting.CallvoteKick(m_Popup.m_PlayerId, "");
+		}
+	}
+
+	if(LocalInTeam && LocalTeam == TargetTeam)
+	{
+		pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+		pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+		Button.Draw(Hovered(&Button) ? SPopupProperties::TeamsActiveButtonColor() : SPopupProperties::TeamsGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		Ui()->DoLabel(&Button, Localize("Lock"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+		if(DoButtonLogic(&Button))
+		{
+			Console()->ExecuteLine("say /lock");
 		}
 	}
 }
@@ -893,6 +1051,8 @@ void CScoreboard::OnRender()
 
 	CUIRect Scoreboard = {(Width - ScoreboardWidth) / 2.0f, 150.0f, ScoreboardWidth, 710.0f + TitleHeight};
 	CScoreboardRenderState RenderState{};
+
+	bool playerHovered = m_Popup.m_Visible && Hovered(&m_Popup.m_Rect);
 
 	if(Teams)
 	{
@@ -952,8 +1112,10 @@ void CScoreboard::OnRender()
 
 		RenderTitle(RedTitle, TEAM_RED, pRedTeamName == nullptr ? Localize("Red team") : pRedTeamName);
 		RenderTitle(BlueTitle, TEAM_BLUE, pBlueTeamName == nullptr ? Localize("Blue team") : pBlueTeamName);
-		RenderScoreboard(RedScoreboard, TEAM_RED, 0, NumPlayers, RenderState);
-		RenderScoreboard(BlueScoreboard, TEAM_BLUE, 0, NumPlayers, RenderState);
+		bool HoveredThisCall = RenderScoreboard(RedScoreboard, TEAM_RED, 0, NumPlayers, RenderState, playerHovered);
+		playerHovered = HoveredThisCall || playerHovered;
+		HoveredThisCall = RenderScoreboard(RedScoreboard, TEAM_BLUE, 0, NumPlayers, RenderState, playerHovered);
+		playerHovered = HoveredThisCall || playerHovered;
 	}
 	else
 	{
@@ -975,7 +1137,8 @@ void CScoreboard::OnRender()
 
 		if(NumPlayers <= 16)
 		{
-			RenderScoreboard(Scoreboard, TEAM_RED, 0, NumPlayers, RenderState);
+			bool HoveredThisCall = RenderScoreboard(Scoreboard, TEAM_RED, 0, NumPlayers, RenderState, playerHovered);
+			playerHovered = HoveredThisCall || playerHovered;
 		}
 		else if(NumPlayers <= 64)
 		{
@@ -991,8 +1154,11 @@ void CScoreboard::OnRender()
 
 			CUIRect LeftScoreboard, RightScoreboard;
 			Scoreboard.VSplitMid(&LeftScoreboard, &RightScoreboard);
-			RenderScoreboard(LeftScoreboard, TEAM_RED, 0, PlayersPerSide, RenderState);
-			RenderScoreboard(RightScoreboard, TEAM_RED, PlayersPerSide, 2 * PlayersPerSide, RenderState);
+
+			bool HoveredThisCall = RenderScoreboard(LeftScoreboard, TEAM_RED, 0, PlayersPerSide, RenderState, playerHovered);
+			playerHovered = HoveredThisCall || playerHovered;
+			HoveredThisCall = RenderScoreboard(RightScoreboard, TEAM_RED, PlayersPerSide, 2 * PlayersPerSide, RenderState, playerHovered);
+			playerHovered = HoveredThisCall || playerHovered;
 		}
 		else
 		{
@@ -1003,7 +1169,8 @@ void CScoreboard::OnRender()
 			{
 				CUIRect Column;
 				RemainingScoreboard.VSplitLeft(Scoreboard.w / NumColumns, &Column, &RemainingScoreboard);
-				RenderScoreboard(Column, TEAM_RED, i * PlayersPerColumn, (i + 1) * PlayersPerColumn, RenderState);
+				bool HoveredThisCall = RenderScoreboard(Column, TEAM_RED, i * PlayersPerColumn, (i + 1) * PlayersPerColumn, RenderState, playerHovered);
+				playerHovered = HoveredThisCall || playerHovered;
 			}
 		}
 	}
@@ -1020,6 +1187,10 @@ void CScoreboard::OnRender()
 
 	RenderRecordingNotification((Width / 7) * 4 + 20);
 
+	if(m_Popup.shouldHide(m_Mouse, playerHovered))
+		m_Popup.toggle(false);
+	if(m_Popup.m_Visible)
+		RenderPlayerPopUp();
 	if(m_Mouse.m_Unlocked)
 		RenderTools()->RenderCursor(m_Mouse.m_Position, 24.0f * ((400.0f * 3.0f) / 600.0f));
 }

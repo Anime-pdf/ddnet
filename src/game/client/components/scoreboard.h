@@ -25,10 +25,15 @@ class CScoreboard : public CComponent
 	void RenderTitle(CUIRect TitleBar, int Team, const char *pTitle);
 	void RenderGoals(CUIRect Goals);
 	void RenderSpectators(CUIRect Spectators);
-	void RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart, int CountEnd, CScoreboardRenderState &State);
+	bool RenderScoreboard(CUIRect Scoreboard, int Team, int CountStart, int CountEnd, CScoreboardRenderState &State, bool playerHovered = false);
 	void RenderRecordingNotification(float x);
 
+	// popup
+	float CalculatePopupHeight();
 	void RenderPlayerPopUp();
+	void RenderQuickActions(CUIRect *pBase);
+	void RenderGeneralActions(CUIRect *pBase);
+	void RenderTeamActions(CUIRect *pBase);
 
 	static void ConKeyScoreboard(IConsole::IResult *pResult, void *pUserData);
 	const char *GetTeamName(int Team) const;
@@ -36,16 +41,34 @@ class CScoreboard : public CComponent
 	bool m_Active;
 	float m_ServerRecord;
 
+	bool DoButtonLogic(const CUIRect *pRect) const
+	{
+		if(m_Mouse.m_Clicked)
+			dbg_msg("button", "pos:[%f;%f], hovered: %d", pRect->x, pRect->y, Hovered(pRect));
+		return Hovered(pRect) && m_Mouse.m_Clicked;
+	}
+	bool Hovered(const CUIRect *pRect) const
+	{
+		return m_Mouse.m_Unlocked && pRect->Inside(m_Mouse.m_Position);
+	}
+
+	void DoIconLabeledButton(CUIRect *pRect, const char *pTitle, const char *pIcon, float TextSize, float Height,  ColorRGBA IconColor) const;
+	void DoIconButton(CUIRect *pRect, const char *pIcon, float TextSize, ColorRGBA IconColor) const;
+
 	struct SMouseState
 	{
 		bool m_Unlocked = false;
 		bool m_Clicked = false;
+		bool m_LastMouseInput = false;
+		bool m_MouseInput = false;
 		vec2 m_Position{0, 0};
 
 		void reset()
 		{
 			m_Unlocked = false;
 			m_Clicked = false;
+			m_LastMouseInput = false;
+			m_MouseInput = false;
 		}
 
 		void clampPosition(float ScreenWidth, float ScreenHeight)
@@ -72,19 +95,8 @@ class CScoreboard : public CComponent
 		}
 
 		void toggle(bool Show, vec2 Pos = {0, 0}, int Id = -1);
-		bool shouldHide(const SMouseState &Mouse, bool PlayerHovered, const CGameClient *GameClient) const;
+		bool shouldHide(const SMouseState &Mouse, bool PlayerHovered) const;
 	} m_Popup;
-
-	bool DoButtonLogic(const CUIRect *pRect) const
-	{
-		return m_Mouse.m_Unlocked && pRect->Inside(m_Mouse.m_Position) && m_Mouse.m_Clicked;
-	}
-	bool Hovered(const CUIRect *pRect) const
-	{
-		return m_Mouse.m_Unlocked && pRect->Inside(m_Mouse.m_Position);
-	}
-
-	void DoIconLabeledButton(CUIRect *pRect, const char *pTitle, const char *pIcon, float TextSize, float Height,  ColorRGBA IconColor) const;
 
 public:
 	CScoreboard();
