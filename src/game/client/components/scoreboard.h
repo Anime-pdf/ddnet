@@ -43,8 +43,6 @@ class CScoreboard : public CComponent
 
 	bool DoButtonLogic(const CUIRect *pRect) const
 	{
-		if(m_Mouse.m_Clicked)
-			dbg_msg("button", "pos:[%f;%f], hovered: %d", pRect->x, pRect->y, Hovered(pRect));
 		return Hovered(pRect) && m_Mouse.m_Clicked;
 	}
 	bool Hovered(const CUIRect *pRect) const

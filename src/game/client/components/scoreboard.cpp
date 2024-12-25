@@ -141,9 +141,6 @@ bool CScoreboard::OnInput(const IInput::CEvent &Event)
 	m_Mouse.m_MouseInput = m_Mouse.m_Unlocked && (Event.m_Flags & IInput::FLAG_PRESS && (Event.m_Key == KEY_MOUSE_1 || Event.m_Key == KEY_MOUSE_2));
 	m_Mouse.m_Clicked = !m_Mouse.m_LastMouseInput && m_Mouse.m_MouseInput;
 
-	if(m_Mouse.m_MouseInput || m_Mouse.m_Clicked)
-		dbg_msg("on/input", "click: %d, mouse: %d", m_Mouse.m_Clicked, m_Mouse.m_MouseInput);
-
 	return m_Mouse.m_Clicked;
 }
 
