@@ -1111,7 +1111,7 @@ void CScoreboard::OnRender()
 		RenderTitle(BlueTitle, TEAM_BLUE, pBlueTeamName == nullptr ? Localize("Blue team") : pBlueTeamName);
 		bool HoveredThisCall = RenderScoreboard(RedScoreboard, TEAM_RED, 0, NumPlayers, RenderState, playerHovered);
 		playerHovered = HoveredThisCall || playerHovered;
-		HoveredThisCall = RenderScoreboard(RedScoreboard, TEAM_BLUE, 0, NumPlayers, RenderState, playerHovered);
+		HoveredThisCall = RenderScoreboard(BlueScoreboard, TEAM_BLUE, 0, NumPlayers, RenderState, playerHovered);
 		playerHovered = HoveredThisCall || playerHovered;
 	}
 	else
