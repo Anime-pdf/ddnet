@@ -16,6 +16,8 @@ MACRO_CONFIG_INT(ClApplySoloOnUnique, cl_apply_solo_unique, 1, 0, 1, CFGFLAG_CLI
 
 MACRO_CONFIG_INT(ClCursorSizeMultiplier, cl_cursor_size_multiplier, 10, 1, 100, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Scale of weapon cursor (crosshair)")
 
+MACRO_CONFIG_INT(ClHideIgnoredInAnyCondition, cl_hide_ignored_any, 1, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Hide ignored players even if they are onthe same team")
+
 MACRO_CONFIG_COL(ClShowTeeHitboxInnerColor, cl_show_tee_hitbox_inner_color, 0xFFB3FE4D, CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_COLALPHA, "Own tee hitbox inner circle color");
 MACRO_CONFIG_COL(ClShowTeeHitboxOuterColor, cl_show_tee_hitbox_outer_color, 0xFEFFB34D, CFGFLAG_CLIENT | CFGFLAG_SAVE | CFGFLAG_COLALPHA, "Own tee hitbox outer circle color");
 MACRO_CONFIG_INT(ClShowTeeHitboxOwn, cl_show_tee_hitbox_own, 0, 0, 1, CFGFLAG_CLIENT | CFGFLAG_SAVE, "Show hitbox of local tee")
