@@ -103,4 +103,7 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 	RightSide.HSplitTop(LineSize, &Button, &RightSide);
 	if(DoButton_CheckBox(&g_Config.m_ClShowHookCollOwnOverride, Localize("Override server's hook collision policy"), g_Config.m_ClShowHookCollOwnOverride, &Button))
 		g_Config.m_ClShowHookCollOwnOverride = g_Config.m_ClShowHookCollOwnOverride ? 0 : 1;
+
+	RightSide.HSplitTop(LineSize, &Button, &RightSide);
+	Ui()->DoScaledScrollbarOption(&g_Config.m_ClCursorSizeMultiplier, &g_Config.m_ClCursorSizeMultiplier, &Button, Localize("Crosshair multiplier"), 1, 100, 0.1f, &CUi::ms_LinearScrollbarScale, CUi::SCROLLBAR_OPTION_NOCLAMPVALUE, "x");
 }
