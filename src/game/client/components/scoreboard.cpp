@@ -922,7 +922,7 @@ void CScoreboard::RenderGeneralActions(CUIRect *pBase)
 	else if(Community == 2)
 		str_format(aCommunityLink, sizeof(aCommunityLink), "https://uniqueclan.net/ranks/player/%s", pPlayerName);
 	else
-		str_format(aCommunityLink, sizeof(aCommunityLink), "https://ddnet.org/players/%s", pPlayerName);
+		str_format(aCommunityLink, sizeof(aCommunityLink), "https://ddnet.org/players/%s", encodeUTF8(pPlayerName).c_str());
 
 	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
 	pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
