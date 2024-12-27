@@ -747,7 +747,7 @@ void CScoreboard::RenderRecordingNotification(float x)
 }
 float CScoreboard::CalculatePopupHeight()
 {
-	int GeneralButtons = 4;
+	int GeneralButtons = 5;
 	int TeamButtons = 0;
 	{
 		bool LocalIsTarget = GameClient()->m_aLocalIds[g_Config.m_ClDummy] == m_Popup.m_PlayerId;
@@ -895,14 +895,24 @@ void CScoreboard::RenderQuickActions(CUIRect *pBase)
 
 	Container.VSplitRight(SPopupProperties::ms_QuickActionsHeight, &Container, &Action);
 
-	// Spectate
-	Action.Draw(Hovered(&Action) ? SPopupProperties::ActionActiveButtonColor() : SPopupProperties::ActionGeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
-	DoIconButton(&Action, FontIcons::FONT_ICON_EYE, SPopupProperties::ms_IconFontSize, TextRender()->DefaultTextColor());
+	// Hidden
+	const bool IsHidden = Client()->Hidden()->IsFriend(pPlayerName, pPlayerClan, true);
+	if(Hovered(&Action))
+	{
+		Action.Draw(IsHidden ? SPopupProperties::ActionActiveButtonColor() : SPopupProperties::ActionAltActiveButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		DoIconButton(&Action, IsHidden ? FontIcons::FONT_ICON_EYE : FontIcons::FONT_ICON_EYE_SLASH, SPopupProperties::ms_IconFontSize, TextRender()->DefaultTextColor());
+	}
+	else
+	{
+		Action.Draw(IsHidden ? SPopupProperties::ActionAltActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+		DoIconButton(&Action, IsHidden ? FontIcons::FONT_ICON_EYE_SLASH : FontIcons::FONT_ICON_EYE, SPopupProperties::ms_IconFontSize, TextRender()->DefaultTextColor());
+	}
 	if(DoButtonLogic(&Action))
 	{
-		if(!GameClient()->m_Snap.m_SpecInfo.m_Active)
-			Console()->ExecuteLine("say /pause");
-		GameClient()->m_Spectator.Spectate(m_Popup.m_PlayerId);
+		if(IsHidden)
+			Client()->Hidden()->RemoveFriend(pPlayerName, pPlayerClan);
+		else
+			Client()->Hidden()->AddFriend(pPlayerName, pPlayerClan);
 	}
 }
 
@@ -941,6 +951,17 @@ void CScoreboard::RenderGeneralActions(CUIRect *pBase)
 		char aWhisperBuf[512];
 		str_format(aWhisperBuf, sizeof(aWhisperBuf), "chat all /whisper %s ", pPlayerName);
 		Console()->ExecuteLine(aWhisperBuf);
+	}
+
+	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+	pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+	Button.Draw(Hovered(&Button) ? SPopupProperties::GeneralActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	Ui()->DoLabel(&Button, Localize("Spectate"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+	if(DoButtonLogic(&Button))
+	{
+		if(!GameClient()->m_Snap.m_SpecInfo.m_Active)
+			Console()->ExecuteLine("say /pause");
+		GameClient()->m_Spectator.Spectate(m_Popup.m_PlayerId);
 	}
 
 	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);

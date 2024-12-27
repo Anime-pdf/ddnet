@@ -105,6 +105,7 @@ void CGameClient::OnConsoleInit()
 	m_pFavorites = Kernel()->RequestInterface<IFavorites>();
 	m_pFriends = Kernel()->RequestInterface<IFriends>();
 	m_pFoes = Client()->Foes();
+	m_pHidden = Client()->Hidden();
 #if defined(CONF_AUTOUPDATE)
 	m_pUpdater = Kernel()->RequestInterface<IUpdater>();
 #endif
@@ -1955,6 +1956,9 @@ void CGameClient::OnNewSnapshot()
 
 		// update foe state
 		m_aClients[i].m_Foe = !(i == m_Snap.m_LocalClientId || !m_Snap.m_apPlayerInfos[i] || !Foes()->IsFriend(m_aClients[i].m_aName, m_aClients[i].m_aClan, true));
+
+		// update hidden state
+		m_aClients[i].m_Hidden = !(i == m_Snap.m_LocalClientId || !m_Snap.m_apPlayerInfos[i] || !Hidden()->IsFriend(m_aClients[i].m_aName, m_aClients[i].m_aClan, true));
 	}
 
 	// sort player infos by name
@@ -2609,6 +2613,7 @@ void CGameClient::CClientData::Reset()
 	m_EmoticonIgnore = false;
 	m_Friend = false;
 	m_Foe = false;
+	m_Hidden = false;
 
 	m_AuthLevel = AUTHED_NO;
 	m_Afk = false;

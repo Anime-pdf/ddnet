@@ -297,6 +297,7 @@ public:
 
 	virtual IFriends *Friends() = 0;
 	virtual IFriends *Foes() = 0;
+	virtual IFriends *Hidden() = 0;
 
 	virtual void GetSmoothTick(int *pSmoothTick, float *pSmoothIntraTick, float MixAmount) = 0;
 
