@@ -1564,6 +1564,8 @@ void CGameClient::OnNewSnapshot()
 	CServerInfo ServerInfo;
 	Client()->GetServerInfo(&ServerInfo);
 
+	bool UniqeRaceServer = str_comp(ServerInfo.m_aCommunityId, "unique") == 0 && (str_find(ServerInfo.m_aGameType, "Race") != nullptr || str_find(ServerInfo.m_aGameType, "FastCap") != nullptr);
+
 	bool FoundGameInfoEx = false;
 	bool GotSwitchStateTeam = false;
 	m_aSwitchStateTeam[g_Config.m_ClDummy] = -1;
@@ -1883,6 +1885,11 @@ void CGameClient::OnNewSnapshot()
 				else
 					m_aSwitchStateTeam[g_Config.m_ClDummy] = -1;
 				GotSwitchStateTeam = true;
+			}
+
+			if(UniqeRaceServer)
+			{
+				m_aClients[Item.m_Id].m_Solo = g_Config.m_ClApplySoloOnUnique;
 			}
 		}
 	}

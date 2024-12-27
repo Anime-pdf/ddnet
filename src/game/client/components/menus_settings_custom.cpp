@@ -90,4 +90,18 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 	Graphics()->SetColor(1.0f, 1.0f, 1.0f, 1.0f);
 	for(int i = -2; i <= 2; i++)
 		RenderTools()->RenderTile(Center.x - (i * 32.f) - 16.f, Center.y + 14.f, TILE_SOLID, 32.f, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f));
+
+	// right side
+
+	RightSide.HSplitTop(HeadlineHeight, &Label, &RightSide);
+	Ui()->DoLabel(&Label, Localize("Miscellaneous"), HeadlineFontSize, TEXTALIGN_ML);
+	RightSide.HSplitTop(MarginSmall, nullptr, &RightSide);
+
+	RightSide.HSplitTop(LineSize, &Button, &RightSide);
+	if(DoButton_CheckBox(&g_Config.m_ClApplySoloOnUnique, Localize("Apply solo on Unique Race"), g_Config.m_ClApplySoloOnUnique, &Button))
+		g_Config.m_ClApplySoloOnUnique = g_Config.m_ClApplySoloOnUnique ? 0 : 1;
+
+	RightSide.HSplitTop(LineSize, &Button, &RightSide);
+	if(DoButton_CheckBox(&g_Config.m_ClShowHookCollOwnOverride, Localize("Override server's hook collision policy"), g_Config.m_ClShowHookCollOwnOverride, &Button))
+		g_Config.m_ClShowHookCollOwnOverride = g_Config.m_ClShowHookCollOwnOverride ? 0 : 1;
 }
