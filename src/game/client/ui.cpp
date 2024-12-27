@@ -1498,7 +1498,7 @@ bool CUi::DoScrollbarOption(const void *pId, int *pOption, const CUIRect *pRect,
 	return false;
 }
 
-bool CUi::DoScaledScrollbarOption(const void *pId, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, float Scale, const IScrollbarScale *pScale, unsigned Flags, const char* pPrefix, const char *pSuffix)
+bool CUi::DoScaledScrollbarOption(const void *pId, int *pOption, const CUIRect *pRect, const char *pStr, int Min, int Max, float Scale, const IScrollbarScale *pScale, unsigned Flags, const char *pPrefix, const char *pSuffix)
 {
 	const bool Infinite = Flags & CUi::SCROLLBAR_OPTION_INFINITE;
 	const bool NoClampValue = Flags & CUi::SCROLLBAR_OPTION_NOCLAMPVALUE;

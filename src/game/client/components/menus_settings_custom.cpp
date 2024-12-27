@@ -53,7 +53,6 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 	static CButtonContainer s_HammerHitbox;
 	DoLine_ColorPicker(&s_HammerHitbox, ColorPickerLineSize, ColorPickerLabelSize, ColorPickerLineSpacing, &LeftSide, Localize("Hammer hitbox color"), &g_Config.m_ClShowHammerHitboxColor, HammerHitboxColorDefault, false, nullptr, true);
 
-
 	// Preview
 	CTeeRenderInfo OwnSkinInfo;
 	OwnSkinInfo.Apply(m_pClient->m_Skins.Find(g_Config.m_ClPlayerSkin));
@@ -65,13 +64,13 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 	DummySkinInfo.ApplyColors(g_Config.m_ClDummyUseCustomColor, g_Config.m_ClDummyColorBody, g_Config.m_ClDummyColorFeet);
 	DummySkinInfo.m_Size = 50.0f;
 
-	auto DoHitboxPreviewTee = [=](vec2 Pos, vec2 Dir, bool HammerHitbox, bool TeeHitbox, CTeeRenderInfo* Info) {
+	auto DoHitboxPreviewTee = [=](vec2 Pos, vec2 Dir, bool HammerHitbox, bool TeeHitbox, const CTeeRenderInfo *pInfo) {
 		if(HammerHitbox)
 			RenderTools()->RenderHammerHitbox(Pos, Dir);
 		if(TeeHitbox)
 			RenderTools()->RenderTeeHitbox(Pos);
 		else
-			RenderTools()->RenderTee(CAnimState::GetIdle(), Info, 0, Dir, Pos);
+			RenderTools()->RenderTee(CAnimState::GetIdle(), pInfo, 0, Dir, Pos);
 	};
 
 	LeftSide.VSplitRight(170.f, &LeftSide, &Preview);

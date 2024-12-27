@@ -50,7 +50,7 @@ class CScoreboard : public CComponent
 		return m_Mouse.m_Unlocked && pRect->Inside(m_Mouse.m_Position);
 	}
 
-	void DoIconLabeledButton(CUIRect *pRect, const char *pTitle, const char *pIcon, float TextSize, float Height,  ColorRGBA IconColor) const;
+	void DoIconLabeledButton(CUIRect *pRect, const char *pTitle, const char *pIcon, float TextSize, float Height, ColorRGBA IconColor) const;
 	void DoIconButton(CUIRect *pRect, const char *pIcon, float TextSize, ColorRGBA IconColor) const;
 
 	struct SMouseState

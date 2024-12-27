@@ -914,8 +914,7 @@ void CScoreboard::RenderGeneralActions(CUIRect *pBase)
 
 	CServerInfo ServerInfo;
 	Client()->GetServerInfo(&ServerInfo);
-	int Community = (str_comp(ServerInfo.m_aCommunityId, "kog") == 0)    ? 1 :
-			(str_comp(ServerInfo.m_aCommunityId, "unique") == 0) ? 2 : 0;
+	int Community = (str_comp(ServerInfo.m_aCommunityId, "kog") == 0) ? 1 : (str_comp(ServerInfo.m_aCommunityId, "unique") == 0) ? 2 : 0;
 	char aCommunityLink[512];
 	if(Community == 1)
 		str_format(aCommunityLink, sizeof(aCommunityLink), "https://kog.tw/#p=players&player=%s", pPlayerName);
