@@ -1209,6 +1209,11 @@ void CClient::ProcessServerInfo(int RawType, NETADDR *pFrom, const void *pData, 
 	{
 		Info = pEntry->m_Info;
 	}
+	else
+	{
+		Info.m_NumAddresses = 1;
+		Info.m_aAddresses[0] = *pFrom;
+	}
 
 	Info.m_Type = SavedType;
 
@@ -1358,9 +1363,7 @@ void CClient::ProcessServerInfo(int RawType, NETADDR *pFrom, const void *pData, 
 			// us.
 			if(SavedType >= m_CurrentServerInfo.m_Type)
 			{
-				mem_copy(&m_CurrentServerInfo, &Info, sizeof(m_CurrentServerInfo));
-				m_CurrentServerInfo.m_NumAddresses = 1;
-				m_CurrentServerInfo.m_aAddresses[0] = ServerAddress();
+				m_CurrentServerInfo = Info;
 				m_CurrentServerInfoRequestTime = -1;
 			}
 
