@@ -1,7 +1,7 @@
 #include <game/client/gameclient.h>
 
-#include "game/client/animstate.h"
-#include "game/localization.h"
+#include <game/client/animstate.h>
+#include <game/localization.h>
 #include "menus.h"
 
 void CMenus::RenderSettingsCustom(CUIRect MainView)
