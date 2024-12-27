@@ -92,7 +92,6 @@ void CMenus::RenderSettingsCustom(CUIRect MainView)
 		RenderTools()->RenderTile(Center.x - (i * 32.f) - 16.f, Center.y + 14.f, TILE_SOLID, 32.f, ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f));
 
 	// right side
-
 	RightSide.HSplitTop(HeadlineHeight, &Label, &RightSide);
 	Ui()->DoLabel(&Label, Localize("Miscellaneous"), HeadlineFontSize, TEXTALIGN_ML);
 	RightSide.HSplitTop(MarginSmall, nullptr, &RightSide);

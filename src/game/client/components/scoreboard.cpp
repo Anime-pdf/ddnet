@@ -747,7 +747,7 @@ void CScoreboard::RenderRecordingNotification(float x)
 }
 float CScoreboard::CalculatePopupHeight()
 {
-	int GeneralButtons = 3;
+	int GeneralButtons = 4;
 	int TeamButtons = 0;
 	{
 		bool LocalIsTarget = GameClient()->m_aLocalIds[g_Config.m_ClDummy] == m_Popup.m_PlayerId;
@@ -912,15 +912,36 @@ void CScoreboard::RenderGeneralActions(CUIRect *pBase)
 
 	const char *pPlayerName = GameClient()->m_aClients[m_Popup.m_PlayerId].m_aName;
 
+	CServerInfo ServerInfo;
+	Client()->GetServerInfo(&ServerInfo);
+	int Community = (str_comp(ServerInfo.m_aCommunityId, "kog") == 0)    ? 1 :
+			(str_comp(ServerInfo.m_aCommunityId, "unique") == 0) ? 2 : 0;
+	char aCommunityLink[512];
+	if(Community == 1)
+		str_format(aCommunityLink, sizeof(aCommunityLink), "https://kog.tw/#p=players&player=%s", pPlayerName);
+	else if(Community == 2)
+		str_format(aCommunityLink, sizeof(aCommunityLink), "https://uniqueclan.net/ranks/player/%s", pPlayerName);
+	else
+		str_format(aCommunityLink, sizeof(aCommunityLink), "https://ddnet.org/players/%s", pPlayerName);
+
 	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
 	pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
 	Button.Draw(Hovered(&Button) ? SPopupProperties::GeneralActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
 	Ui()->DoLabel(&Button, Localize("Profile"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
 	if(DoButtonLogic(&Button))
 	{
-		char aBuf[512];
-		str_format(aBuf, sizeof(aBuf), "https://ddnet.org/players/%s", encodeUTF8(pPlayerName).c_str());
-		Client()->ViewLink(aBuf);
+		Client()->ViewLink(aCommunityLink);
+	}
+
+	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
+	pBase->HSplitTop(SPopupProperties::ms_ButtonHeight, &Button, pBase);
+	Button.Draw(Hovered(&Button) ? SPopupProperties::GeneralActiveButtonColor() : SPopupProperties::GeneralButtonColor(), IGraphics::CORNER_ALL, SPopupProperties::ms_Rounding);
+	Ui()->DoLabel(&Button, Localize("Whisper"), SPopupProperties::ms_FontSize, TEXTALIGN_MC);
+	if(DoButtonLogic(&Button))
+	{
+		char aWhisperBuf[512];
+		str_format(aWhisperBuf, sizeof(aWhisperBuf), "chat all /whisper %s ", pPlayerName);
+		Console()->ExecuteLine(aWhisperBuf);
 	}
 
 	pBase->HSplitTop(SPopupProperties::ms_ItemSpacing, nullptr, pBase);
