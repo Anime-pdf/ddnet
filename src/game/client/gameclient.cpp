@@ -1888,7 +1888,7 @@ void CGameClient::OnNewSnapshot()
 				GotSwitchStateTeam = true;
 			}
 
-			if(UniqeRaceServer)
+			if(UniqeRaceServer && (Item.m_Type == NETOBJTYPE_CHARACTER || Item.m_Type == NETOBJTYPE_DDNETCHARACTER))
 			{
 				m_aClients[Item.m_Id].m_Solo = g_Config.m_ClApplySoloOnUnique;
 			}
